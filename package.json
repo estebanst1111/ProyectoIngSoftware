@@ -5,5 +5,8 @@
     "dotenv": "^17.4.0",
     "express": "^5.2.1",
     "sqlite3": "^6.0.1"
+  },
+  "devDependencies": {
+    "gh-pages": "^6.3.0"
   }
 }
