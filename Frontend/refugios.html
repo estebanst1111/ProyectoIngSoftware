@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Buscar refugios — RefugiosBogotá</title>
+  <link rel="stylesheet" href="styles.css"/>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=Fraunces:ital,wght@0,400;0,600;1,400;1,600&display=swap" rel="stylesheet">
+</head>
+<body class="page-app">
+
+  <nav class="nav nav--app" id="nav">
+    <div class="nav-inner">
+      <a href="index.html" class="logo">
+        <span class="logo-paw">🐾</span>
+        <span class="logo-text">Refugios<strong>Bogotá</strong></span>
+      </a>
+      <div class="nav-app-links">
+        <a href="refugios.html" class="nav-app-link active">Buscar refugios</a>
+      </div>
+      <div class="nav-user" id="nav-user">
+        <span class="user-greeting" id="user-greeting"></span>
+        <button class="btn-logout" onclick="cerrarSesion()">Cerrar sesión</button>
+      </div>
+    </div>
+  </nav>
+
+  <div class="app-layout">
+
+    <!-- Sidebar filtros -->
+    <aside class="filters-sidebar">
+      <div class="filters-header">
+        <h3>Filtros</h3>
+        <button class="btn-clear-filters" onclick="limpiarFiltros()">Limpiar</button>
+      </div>
+
+      <!-- S-1: Geolocalización -->
+      <div class="filter-group">
+        <button class="btn-geolocate" id="btn-geolocate" onclick="usarMiUbicacion()">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/><circle cx="12" cy="12" r="9" opacity=".3"/></svg>
+          Usar mi ubicación
+        </button>
+      </div>
+
+      <div class="filter-group">
+        <label class="filter-label">Localidad</label>
+        <select id="filtro-localidad" onchange="aplicarFiltros()">
+          <option value="">Todas</option>
+          <option value="usaquen">Usaquén</option>
+          <option value="chapinero">Chapinero</option>
+          <option value="santa_fe">Santa Fe</option>
+          <option value="kennedy">Kennedy</option>
+          <option value="suba">Suba</option>
+          <option value="engativa">Engativá</option>
+          <option value="bosa">Bosa</option>
+          <option value="fontibon">Fontibón</option>
+          <option value="teusaquillo">Teusaquillo</option>
+          <option value="barrios_unidos">Barrios Unidos</option>
+          <option value="ciudad_bolivar">Ciudad Bolívar</option>
+        </select>
+      </div>
+
+      <div class="filter-group">
+        <label class="filter-label">Tipo de animal</label>
+        <div class="filter-chips">
+          <button class="chip active" data-tipo="todos"   onclick="seleccionarTipo(this)">Todos</button>
+          <button class="chip"        data-tipo="perros"  onclick="seleccionarTipo(this)">🐶 Perros</button>
+          <button class="chip"        data-tipo="gatos"   onclick="seleccionarTipo(this)">🐱 Gatos</button>
+          <button class="chip"        data-tipo="mixto"   onclick="seleccionarTipo(this)">🐾 Mixto</button>
+        </div>
+      </div>
+
+      <div class="filter-group">
+        <label class="filter-label">Calificación mínima</label>
+        <div class="filter-chips">
+          <button class="chip active" data-rating="0"   onclick="seleccionarRating(this)">Todas</button>
+          <button class="chip"        data-rating="4"   onclick="seleccionarRating(this)">⭐ 4+</button>
+          <button class="chip"        data-rating="4.5" onclick="seleccionarRating(this)">⭐ 4.5+</button>
+        </div>
+      </div>
+
+      <div class="filter-group">
+        <label class="filter-label">Buscar por nombre</label>
+        <input type="text" id="filtro-nombre" placeholder="Nombre del refugio..." oninput="aplicarFiltros()"/>
+      </div>
+    </aside>
+
+    <!-- Contenido principal -->
+    <main class="app-main">
+      <div class="app-header">
+        <div>
+          <h1 class="app-title">Buscar refugios</h1>
+          <p class="app-sub" id="resultado-count">Mostrando todos los refugios</p>
+        </div>
+        <div class="view-toggle">
+          <button class="view-btn active" id="btn-grid"  onclick="cambiarVista('grid')"  title="Cuadrícula">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+          </button>
+          <button class="view-btn" id="btn-lista" onclick="cambiarVista('lista')" title="Lista">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+          </button>
+          <button class="view-btn" id="btn-mapa" onclick="cambiarVista('mapa')" title="Mapa">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"/><line x1="8" y1="2" x2="8" y2="18"/><line x1="16" y1="6" x2="16" y2="22"/></svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- Grid de refugios -->
+      <div class="refugios-app-grid" id="refugios-grid"></div>
+
+      <!-- Contenedor mapa -->
+      <div id="mapa-container" style="display:none">
+        <div id="mapa-leaflet" style="height:600px; border-radius:14px; overflow:hidden;"></div>
+      </div>
+
+      <!-- Estado vacío -->
+      <div class="empty-state" id="empty-state" style="display:none">
+        <div class="empty-icon">🔍</div>
+        <h3>No se encontraron refugios</h3>
+        <p>Intenta con otros criterios o amplía los filtros.</p>
+        <button class="btn-primary btn-sm" onclick="limpiarFiltros()">Ver todos</button>
+      </div>
+    </main>
+  </div>
+
+  <!-- Modal -->
+  <div id="modal-refugio" class="modal-overlay" onclick="cerrarModal(event)">
+    <div class="modal-card">
+      <button class="modal-close" onclick="cerrarModal()">✕</button>
+      <div id="modal-content"></div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="refugios.js"></script>
+</body>
+</html>

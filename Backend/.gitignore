@@ -1,0 +1,17 @@
+# Dependencias
+node_modules/
+
+# Base de datos (se genera automáticamente)
+*.db
+*.db-shm
+*.db-wal
+
+# Variables de entorno
+.env
+
+# Sistema operativo
+.DS_Store
+Thumbs.db
+
+# VS Code
+.vscode/
